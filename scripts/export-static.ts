@@ -110,6 +110,68 @@ function prepareSnapshot() {
   return { path, assets, owner: owner ? !!editorOrigin : false };
 }
 
+// /owner needs a server, so it cannot exist on Pages. Ship an explanation in
+// its place rather than leaving a bare 404: it redirects to the deployed editor
+// when EDITOR_ORIGIN is set, and otherwise says where the editor actually runs.
+function writeOwnerPage() {
+  const target = editorOrigin ? `${editorOrigin}/owner` : "";
+  const home = `${basePath}/`;
+  const body = target
+    ? `<p>Taking you to the editor at <a href="${target}">${target}</a>.</p>
+    <p class="muted">If nothing happens, follow that link.</p>`
+    : `<p>The owner editor is not part of this published site.</p>
+    <p class="muted">GitHub Pages serves files only. Signing in, saving a draft,
+    uploading a photograph and publishing all need a server and a database, so
+    the editor runs on the author's machine:</p>
+    <pre>npm run dev
+
+# then open http://127.0.0.1:3000/owner</pre>
+    <p class="muted">After publishing, <code>npm run snapshot</code> and a push
+    rebuild this site.</p>`;
+  const html = `<!doctype html>
+<html lang="en-ZA" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner editor | Porter</title>
+${target ? `<meta http-equiv="refresh" content="0; url=${target}">` : ""}
+<style>
+:root { color-scheme: light dark; --bg:#f7f3eb; --ink:#30271f; --accent:#7b2035; --line:#e8ded0; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#17130f; --ink:#ede4d8; --accent:#e9a0ae; --line:#3b332b; }
+}
+body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+  background:var(--bg); color:var(--ink); font:17px/1.65 Arial, sans-serif; }
+main { max-width:620px; }
+h1 { font:400 42px Georgia, serif; margin:0 0 8px; }
+.eyebrow { text-transform:uppercase; letter-spacing:.16em; font-size:11px;
+  font-weight:700; color:var(--accent); margin:0 0 14px; }
+.muted { font-size:15px; }
+pre { background:color-mix(in srgb, var(--ink) 8%, transparent); padding:14px 16px;
+  border-radius:8px; overflow-x:auto; font-size:14px; }
+a { color:var(--accent); }
+.back { display:inline-flex; align-items:center; min-height:44px; margin-top:18px;
+  padding:10px 18px; border:1px solid var(--accent); border-radius:7px;
+  color:var(--accent); text-decoration:none; font-weight:600; font-size:15px; }
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">Owner access</p>
+<h1>Editing happens elsewhere</h1>
+${body}
+<a class="back" href="${home}">← Back to the site</a>
+</main>
+${target ? `<script>location.replace(${JSON.stringify(target)})</script>` : ""}
+</body>
+</html>
+`;
+  mkdirSync(join(outDir, "owner"), { recursive: true });
+  writeFileSync(join(outDir, "owner", "index.html"), html);
+  // GitHub Pages serves /owner (no slash) from owner.html.
+  writeFileSync(join(outDir, "owner.html"), html);
+}
+
 // A base-path mistake produces a page that loads with no styling and no script,
 // which is easy to miss until it is live. Fail the build here instead.
 function verify() {
@@ -205,12 +267,14 @@ function run() {
   rmSync(distDir, { recursive: true, force: true });
   rmSync("out", { recursive: true, force: true });
 
+  writeOwnerPage();
   verify();
   console.log(
     `\nStatic site written to docs/ (base path "${basePath || "/"}")`,
   );
   console.log("  docs/index.html      the public site");
   console.log("  docs/report/         the full academic report");
+  console.log("  docs/owner/          explains where the editor runs");
   console.log("  docs/.nojekyll       stops Pages from deleting _next/");
 }
 
