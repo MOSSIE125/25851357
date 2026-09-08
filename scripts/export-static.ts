@@ -246,6 +246,10 @@ function run() {
     for (const [file, text] of originals) writeFileSync(file, text);
     for (const dir of moved)
       renameSync(join(scratch, dir.replace(/[\\/]/g, "_")), dir);
+    // The export build leaves .next holding export-shaped routing (trailing
+    // slashes), which would make a later `next start` redirect API POSTs.
+    // Remove it so a server run has to rebuild instead of serving that.
+    rmSync(".next", { recursive: true, force: true });
   }
 
   const built = existsSync(join("out", "index.html"))

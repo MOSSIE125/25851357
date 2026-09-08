@@ -174,6 +174,10 @@ npm run snapshot   # write content/published.json from your latest Publish
 npm run export     # build docs/ for https://<you>.github.io/25851357/
 ```
 
+`npm run export` clears `.next` when it finishes, because the export build leaves
+routing behind that would make a later `npm run start` redirect API requests.
+Run `npm run build` again before `npm run start` or `npm run test:e2e`.
+
 `npm run export` takes the **published** snapshot (not your draft), writes any
 uploaded photographs out as real files, hides or redirects the owner-access
 link, and verifies the result before finishing — it fails the build if a section
