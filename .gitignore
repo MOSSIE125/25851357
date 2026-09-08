@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.env*
+!.env.example
+data/
+.playwright/
+test-results/
+playwright-report/
+*.tsbuildinfo
+docs/
+.next-static/
+.export-tmp/
+out/
+.npm-cache/
+# The original AI build prompts stay on the author's machine only.
+website.txt

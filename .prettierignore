@@ -1,0 +1,15 @@
+website.txt
+package-lock.json
+.next
+node_modules
+data
+.playwright
+test-results
+playwright-report
+.env.local
+next-env.d.ts
+.claude/
+docs
+.next-static
+.export-tmp
+out
