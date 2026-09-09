@@ -13,9 +13,9 @@ import {
   duplicate,
   editById,
   kinds,
-  siteSchema,
   checklist,
 } from "@/lib/model";
+import { siteSchema } from "@/lib/schema";
 type ResponseData = {
   content: Site;
   version: number;
@@ -315,6 +315,16 @@ export default function Editor() {
     });
     input.focus();
   }
+  async function measure(file: File) {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const ratio = `${bitmap.width}/${bitmap.height}`;
+      bitmap.close();
+      return ratio;
+    } catch {
+      return undefined;
+    }
+  }
   async function upload(file?: File) {
     if (!file || !current) return;
     const selectedId = current.id;
@@ -330,10 +340,15 @@ export default function Editor() {
       });
       const data = await response.json();
       if (!response.ok) throw Error(data.error);
+      // Measure the picture in the browser so the public page can reserve the
+      // right space for it before it loads. The owner can still override the
+      // aspect ratio by hand in the inspector.
+      const ratio = await measure(file);
       if (site)
         change(
           editById(site, selectedId, (n) => {
             n.config.src = data.src;
+            if (ratio) n.config.aspectRatio = ratio;
           }),
         );
       setStatus(
@@ -574,7 +589,9 @@ export default function Editor() {
               ))}
             </nav>
           </aside>
-          <section className="visual-preview" aria-label="Visual preview">
+          {/* The preview is the editor's primary content; the tree and
+              inspector beside it are complementary landmarks. */}
+          <main className="visual-preview" aria-label="Visual preview">
             <p className="preview-banner">
               Select an element to edit it. Links and demonstrations are
               disabled in selection mode.
@@ -588,7 +605,7 @@ export default function Editor() {
                 setMode("inspect");
               }}
             />
-          </section>
+          </main>
           <aside className="inspector" aria-label="Content inspector">
             {mode === "guide" ? (
               <>

@@ -12,9 +12,9 @@ import {
   child,
   find,
   checklist,
-  siteSchema,
   safeUrl,
 } from "../lib/model";
+import { siteSchema } from "../lib/schema";
 import {
   initialise,
   readDraft,

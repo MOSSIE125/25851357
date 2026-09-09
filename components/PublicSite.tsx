@@ -129,15 +129,42 @@ function Field({
     </div>
   );
 }
+// The bundled placeholder is 1600x900. Giving the <img> width and height lets
+// the browser reserve the right space before the file arrives, which is what
+// stops a layout shift. We only claim dimensions we actually know: an explicit
+// aspect ratio if the owner set one, the placeholder's own size when that is
+// what is being shown, and nothing at all for an upload of unknown shape —
+// guessing there would cause the very shift this avoids. The editor records an
+// aspect ratio automatically when a photograph is uploaded.
+const placeholder = { width: 1600, height: 900 };
+function intrinsic(c: Block["config"], usingPlaceholder: boolean) {
+  const ratio = c.aspectRatio?.trim();
+  if (ratio) {
+    const [w, h] = ratio.split("/").map((n) => Number(n.trim()));
+    if (w > 0 && h > 0)
+      return { width: Math.round(w * 100), height: Math.round(h * 100) };
+    const single = Number(ratio);
+    if (single > 0) return { width: Math.round(single * 1000), height: 1000 };
+  }
+  return usingPlaceholder ? placeholder : undefined;
+}
 function ImageBlock({ node, hero = false }: { node: Block; hero?: boolean }) {
   const c = node.config;
+  // Resolve first, then ask whether we ended up on the placeholder. Testing
+  // safeUrl alone was wrong: "/placeholder.svg" is itself a valid URL, and an
+  // empty src passes validation too but must still fall back.
+  const resolved = c.src && safeUrl(c.src) ? c.src : "/placeholder.svg";
+  const usingPlaceholder = resolved === "/placeholder.svg";
+  const size = intrinsic(c, usingPlaceholder);
   return (
     <figure
       className={`${hero ? "hero-image" : "image-block"} ${node.id === "porter-product-image-1" ? "collage" : ""}`}
     >
       <img
-        src={url(safeUrl(c.src || "") ? c.src! : "/placeholder.svg")}
+        src={url(resolved)}
         alt={c.alt || ""}
+        width={size?.width}
+        height={size?.height}
         loading={hero ? "eager" : "lazy"}
         style={{
           objectFit:
@@ -204,6 +231,12 @@ function Action({ node }: { node: Block }) {
 }
 function Interaction({ node }: { node: Block }) {
   const ctx = useContext(ContentContext);
+  // The occasion interaction is a direct child of the root, sitting between the
+  // hero h1 and the first section h2, so it takes h2. Interactions nested in a
+  // section stay at h3. Skipping a level breaks the document outline.
+  const Heading = ctx.site.root.children.some((c) => c.id === node.id)
+    ? "h2"
+    : "h3";
   const [selected, setSelected] = useState(node.config.defaultId || "");
   const options = node.children.filter((c) => c.kind === "option" && !c.hidden);
   const picked = options.find((c) => c.id === selected);
@@ -216,9 +249,9 @@ function Interaction({ node }: { node: Block }) {
       <p className="eyebrow">
         {node.id === "occasion" ? "Choose an occasion" : "Explore the scenario"}
       </p>
-      <h3>
+      <Heading>
         <Rich text={node.text} />
-      </h3>
+      </Heading>
       <div className="choice-row">
         {options.map((o) => (
           <button
@@ -626,7 +659,7 @@ export function Render({
     case "scale":
       content = (
         <div className="scale">
-          <h4>{node.text}</h4>
+          <h3>{node.text}</h3>
           <div
             className="scale-track"
             role="img"
@@ -872,6 +905,10 @@ export default function PublicSite({
       .forEach((e) => observer.observe(e));
     return () => observer.disconnect();
   }, [editing]);
+  // Inside the editor the preview sits within the editor's own layout, so a
+  // <main> here would be a second, nested main landmark. Only the real pages
+  // get the landmark; the id stays either way for the skip link.
+  const Main = editing ? "div" : "main";
   const themeStyle = {
     "--cream": value(theme, "Cream"),
     "--burgundy": value(theme, "Burgundy"),
@@ -979,7 +1016,7 @@ export default function PublicSite({
             }}
           />
         </nav>
-        <main id="main-content" tabIndex={-1}>
+        <Main id="main-content" tabIndex={-1}>
           {report ? (
             <section className="report-cover">
               <p className="eyebrow">Full academic report</p>
@@ -1188,7 +1225,7 @@ export default function PublicSite({
               />
             </section>
           )}
-        </main>
+        </Main>
         <footer data-node-id={footer.id} className="site-footer">
           <div className="wordmark">PORTER</div>
           <Render node={footer} />

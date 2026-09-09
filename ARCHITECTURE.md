@@ -86,6 +86,15 @@ IDs (`hero-title`, `porter-hero-image`, `porter-product-image-1`, `mia-persona-i
 `ref-eighty20`, …). Generated blocks use `content-N`, assigned deterministically by
 `create-seed.ts`, so regenerating the seed after a copy edit does not renumber anything.
 
+### Keeping the validator out of the browser
+
+`lib/model.ts` holds the types and pure tree helpers; `lib/schema.ts` holds the
+Zod schema. They are separate on purpose. `PublicSite` is a client component and
+imports a handful of helpers from `lib/model`, so while the schema lived in the
+same module every reader downloaded Zod and its polyfills with the page —
+roughly 370 KiB uncompressed — to run validation that only ever happens on the
+server. Keep `lib/model.ts` free of runtime dependencies.
+
 ## Storage schema
 
 | Table            | Purpose                                                        |

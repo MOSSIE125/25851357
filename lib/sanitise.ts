@@ -1,5 +1,6 @@
 import sanitizeHtml from "sanitize-html";
-import { flatten, siteSchema, type Site } from "./model";
+import { flatten, type Site } from "./model";
+import { siteSchema } from "./schema";
 export function cleanRich(text: string) {
   return sanitizeHtml(text, {
     allowedTags: ["b", "strong", "i", "em", "u", "a", "span", "br"],

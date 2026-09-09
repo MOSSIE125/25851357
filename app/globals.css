@@ -339,7 +339,7 @@ a.wordmark {
 main:focus {
   outline: none;
 }
-main:focus-visible {
+main#main-content:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: -3px;
 }
@@ -469,6 +469,7 @@ main:focus-visible {
   background: var(--panel-yellow);
   border-bottom: 1px solid var(--line-strong);
 }
+.interaction h2,
 .interaction h3 {
   font-size: 29px;
   margin-bottom: 20px;
@@ -589,6 +590,7 @@ main:focus-visible {
 }
 .image-block img {
   width: 100%;
+  height: auto;
   max-height: 350px;
   object-fit: contain;
   border-radius: 10px;
@@ -729,7 +731,7 @@ blockquote .editable-node {
   max-width: 650px;
   padding: 16px 0;
 }
-.scale h4 {
+.scale h3 {
   font:
     17px Arial,
     sans-serif;
@@ -783,6 +785,7 @@ blockquote .editable-node {
   background: var(--panel-blue);
   border-radius: 10px;
 }
+.stage .interaction h2,
 .stage .interaction h3 {
   font-size: 24px;
 }
@@ -1515,6 +1518,7 @@ th {
   .occasion-wrap {
     padding: 32px 22px;
   }
+  .interaction h2,
   .interaction h3 {
     font-size: 27px;
   }

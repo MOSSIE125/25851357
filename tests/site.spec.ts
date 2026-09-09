@@ -185,7 +185,7 @@ test("responsive layouts and axe accessibility at four widths in both themes", a
         ),
       ).toBe(true);
       const result = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa", "best-practice"])
         .analyze();
       expect(
         result.violations.map((v) => ({
@@ -238,7 +238,7 @@ test("responsive layouts and axe accessibility at four widths in both themes", a
       });
     }
     const result = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "best-practice"])
       .analyze();
     expect(
       result.violations.map((v) => ({
